@@ -6,9 +6,9 @@ fetches all the character models in mixamo.com
 
 1. Install npm and nodejs
 2. `node app.mjs` in the command line<br>
-3. Configure `.env` file based on [the instructions](#configuration)
+3. Configure `.env` file based on [the instructions](#env-file-configuration)
 
-## Configuration
+## .env File Configuration
 
 #### Default Settings
 ```.env
