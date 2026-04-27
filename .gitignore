@@ -1,0 +1,3 @@
+*.fbx
+.env
+/node_modules/
