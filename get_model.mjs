@@ -56,7 +56,8 @@ async function download_model(model, {format='fbx7_2019', mesh='t-pose', dir='.'
 	console.log(`[STEP] waiting for export ${model.name} to finish`);
 	const download_url=await step_monitor(model.id);
 	console.log(`[STEP] downloading ${model.name}`);
-	const download_res=await step_download(download_url, path.join(dir, `${model.name}.fbx`));
+	const safeName = model.name.replace(/[\/\s]/g, '_');
+	const download_res=step_download(download_url, path.join(dir, `${safeName}.fbx`));
 }
 
 async function step_export(characterId, format='fbx7_2019', mesh='t-pose'){
