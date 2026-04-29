@@ -3,15 +3,22 @@ import fs from 'fs';
 import https from 'https';
 import path from 'path';
 
+let programOptions=undefined;
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // the directory to download the models
-async function download_all(download_dir='.'){
+export async function download_all_models(options){
+	programOptions=options;
 	const models=await get_all_model_id();
-	for(const model of models){
-		const res=await download_model(model, {dir: download_dir});
+    const startIdx=options.start;
+    const endIdx=options.count==-1?models.length:Math.min(models.length, options.count);
+	for(let i=startIdx; i<endIdx; ++i){
+		const model=models[i];
+        console.log(`[STATUS] character ${i}/${endIdx}`);
+		const res=await download_model(model, {dir: options.out});
 	}
 }
 
@@ -116,7 +123,7 @@ async function step_monitor(characterId){
 }
 
 async function step_download(url, path){
-	if(process.env.DRYRUN==='true') return;
+	if(programOptions.dryRun) return;
 	const file = fs.createWriteStream(path);
 	const options = {
         headers: {
@@ -143,7 +150,3 @@ async function step_download(url, path){
 		});
 	});
 }
-
-export{
-	download_all
-};
