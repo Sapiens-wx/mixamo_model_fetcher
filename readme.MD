@@ -40,7 +40,7 @@ Options:
 AUTHKEY="<the authentication key>"
 ```
 
-**How to get the `AUTHEKEY`**
+**How to get the `AUTHKEY`**
 
 1. Goto [mixamo.com](https://www.mixamo.com/#/)
 2. login
@@ -48,3 +48,7 @@ AUTHKEY="<the authentication key>"
 4. type `localStorage.access_token`, hit enter
 5. copy the output string without the quotes
 6. format the AUTHKEY exactly as `Bearer <localStorage.access_token>`. **Note that there is a whitespace between `Bearer` and `<access_token>`** e.g., `AUTHKEY="Bearer abcde"`
+
+## References
+
+- [https://github.com/gnuton/mixamo_anims_downloader](https://github.com/gnuton/mixamo_anims_downloader) the getGmsHash function is implemented based on this github repo
