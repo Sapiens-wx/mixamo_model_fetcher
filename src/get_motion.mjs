@@ -2,71 +2,38 @@ import './config.mjs';
 import path from 'path';
 import fs from 'fs';
 import https from 'https';
+import * as mapi from './mixamo_api.mjs'
 
 let programOptions=undefined;
+
+let all_motions=undefined;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function download_all_motions(options){
-    programOptions=options;
-    const motions=await get_all_motions();
-    const startIdx=options.start;
-    const endIdx=options.count==-1?motions.length:Math.min(motions.length, startIdx+options.count);
-    for(let i=startIdx;i<endIdx;++i){
-        const m=motions[i];
-        console.log(`[STATUS] motion ${i}/${endIdx}`);
-        const res=await download_motion(m, "f7b85d05-5f1c-47d8-9770-9a1a054bd6f6", {dir:options.out});
+export async function get_character(args, options){
+    const res=[];
+    for(const characterName of args.misc){
+        const tmp=await mapi.all_products({type:'Character', query: characterName});
+        res.push(...tmp);
     }
+    res.forEach((cur)=>{
+        console.log(cur.id);
+    })
 }
 
-// returns an array of the following object
-// {
-//   id: 'c9c68950-b96c-11e4-a802-0aaa78deedf9',
-//   type: 'Motion',
-//   description: 'Reaction To Getting Clipped While Walking Unaware',
-//   category: '',
-//   character_type: 'human',
-//   name: 'Shoved Reaction With Spin',
-//   thumbnail: 'https://d99n9xvb9513w.cloudfront.net/thumbnails/motions/102450901/static.png',
-//   thumbnail_animated: 'https://d99n9xvb9513w.cloudfront.net/thumbnails/motions/102450901/animated.gif',
-//   motion_id: 'c9c68950-b96c-11e4-a802-0aaa78deedf9',
-//   motions: null,
-//   source: 'system'
-// }
-async function get_all_motions({type='Motion%2CMotionPack'}={}){
-    async function get_motion_by_page(page, type){
-        const res = await fetch(`https://www.mixamo.com/api/v1/products?page=${page}&limit=100&order=&type=${type}&query=`, {
-            "headers": {
-                "Authorization":process.env.AUTHKEY,
-                "X-Api-Key": "mixamo2"
-            },
-            "referrer": "https://www.mixamo.com/",
-            "body": null,
-            "method": "GET",
-            "mode": "cors",
-            "credentials": "omit"
-        });
-        const body=await res.json();
-        return body;
+export async function download_all_motions(options, characterId="f7b85d05-5f1c-47d8-9770-9a1a054bd6f6"){
+    programOptions=options;
+    if(all_motions===undefined)
+        all_motions=await mapi.all_products({type: 'Motion%2CMotionPack'});
+    const startIdx=options.start;
+    const endIdx=options.count==-1?all_motions.length:Math.min(all_motions.length, startIdx+options.count);
+    for(let i=startIdx;i<endIdx;++i){
+        const m=all_motions[i];
+        console.log(`[STATUS] motion ${i}/${endIdx}`);
+        const res=await download_motion(m, characterId, {dir:options.out});
     }
-	let motions=[];
-    // get the pagination info
-    const firstPage=await get_motion_by_page(1, type);
-    const numPages=firstPage.pagination.num_pages;
-    motions.push(...firstPage.results);
-    // get all pages
-    let pages=[];
-	for(let i=2; i<=numPages; ++i){
-        pages.push(get_motion_by_page(i, type));
-	}
-    for(let i=2;i<=numPages;++i){
-		const page=await pages[i];
-        if(page===undefined) continue;
-		motions.push(...page.results);
-    }
-	return motions;
 }
 
 // ===== Download a single model =====

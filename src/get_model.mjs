@@ -2,6 +2,7 @@ import './config.mjs';
 import fs from 'fs';
 import https from 'https';
 import path from 'path';
+import * as mapi from './mixamo_api.mjs'
 
 let programOptions=undefined;
 
@@ -12,7 +13,7 @@ function sleep(ms) {
 // the directory to download the models
 export async function download_all_models(options){
 	programOptions=options;
-	const models=await get_all_model_id();
+	const models=await mapi.all_products({type: "Character"});
     const startIdx=options.start;
     const endIdx=options.count==-1?models.length:Math.min(models.length, options.count);
 	for(let i=startIdx; i<endIdx; ++i){
@@ -20,38 +21,6 @@ export async function download_all_models(options){
         console.log(`[STATUS] character ${i}/${endIdx}`);
 		const res=await download_model(model, {dir: options.out});
 	}
-}
-
-// returns {
-// 	   pagination: {num_pages: int},
-// 	   results: [{id: String, name: String}],
-// }
-async function get_model_id_by_page(page, type='Character'){
-	const res = await fetch(`https://www.mixamo.com/api/v1/products?page=${page}&limit=48&order=&type=${type}&query=`, {
-		"headers": {
-			"Authorization":process.env.AUTHKEY,
-			"X-Api-Key": "mixamo2"
-		},
-		"referrer": "https://www.mixamo.com/",
-		"body": null,
-		"method": "GET",
-		"mode": "cors",
-		"credentials": "omit"
-	});
-	const body=await res.json();
-	return body;
-}
-
-async function get_all_model_id(){
-	let numPages=undefined;
-	let models=[];
-	for(let i=1; numPages===undefined || i<=numPages; ++i){
-		const page=await get_model_id_by_page(i);
-		if(numPages===undefined)
-			numPages=page.pagination.num_pages;
-		models.push(...page.results);
-	}
-	return models;
 }
 
 // ===== Download a single model =====
